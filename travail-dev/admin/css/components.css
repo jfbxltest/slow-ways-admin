@@ -1,0 +1,48 @@
+#toolbox button {
+  font-size: 1.25em;
+}
+
+#tabs-header {
+  overflow: hidden;
+  border: 1px solid #ccc;
+  background-color: #f1f1f1;
+}
+#tabs-header button {
+  background-color: inherit;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  transition: 0.3s;
+}
+#tabs-header button:hover {
+  background-color: #ddd;
+}
+#tabs-header button.active {
+  background-color: #ccc;
+}
+#tabs-content {
+  /* display: none; */
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-top: none;
+}
+.content-item {
+  display: block;
+  overflow: hidden;
+  width: 100%;
+  height: 200px;
+  resize: none;
+  background-color: #ecfccb;
+}
+
+.altered {
+  background-color: #ffedd5;
+}
+.content-altered::after {
+  content: " *";
+}
+.save {
+  background-color: #ecfccb;
+}
