@@ -1,6 +1,2 @@
+.gitignore
 img
-js/leaflet.js
-js/menu.js
-js/share
-travail-dev
-test.html
