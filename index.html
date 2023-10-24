@@ -1,149 +1,181 @@
-
 <!--Datas activités-->
 <!DOCTYPE html>
-<html lang=fr prefix="og:http://ogp.me/ns#">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="keywords" content="">
-    <!--Intégration des balises OpenGraph-->
-        <title>Slowwaysweekend-Parcours conté de Tour & Taxis à Bockstael</title>
-    <meta property="og:title" content=Slowwaysweekend-Parcours conté de Tour & Taxis à Bockstael />
-    <meta property="og:type" content=article />
-    <meta property="og:url" content="https://slowwaysweekend.be?activityId=01&lang=fr" />
-    <meta property="og:image" content="https://slowwaysweekend.be/public/img/content/01-baladeconte-passage.jpg" />    <!--Fin Intégration des balises OpenGraph-->
-    <link rel="stylesheet" href="./css/style.css">
-    <link rel="stylesheet" href="./css/header.css">
-    <link rel="stylesheet" href="./css/menu.css">
-    <link rel="stylesheet" href="./css/main.css">
-    <link rel="stylesheet" href="./css/footer.css">
-    <script src="./js/menu.js"></script>
-    <script src="./js/data.js"></script>
-    <script src="./js/components.js"></script>
-    <link rel="shortcut icon" type="image/png" href="favicon.ico">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-</head>
-<body>
-<header>
-    <div class="mainTitleBlock">
-        <h1><a href="https://www.walk.brussels/" target=”_blank”><img class="logo" src="img/deco/logo_blanc.svg" alt="lien vers le site walk"></a></h1>
-        <div class="mainsubtitle">Slow Ways Weekend            <div class="menulangues">
-            <form method="get"><select name="lang" id="lang" onchange="this.form.submit()"><option value="fr" selected>fr</option><option value="en">en</option><option value="nl">nl</option></select><input type="hidden" name="activityId" value=01></form>            </div>
-        </div>
-    </div>
-    <div class="menu">
-        <nav class="responsiveMenu" id="responsiveMenu">
-             <a class='itemMenu' href='index.php?lang=fr#programm'>Programme</a><a class='itemMenu' href='index.php?lang=fr#map'>Carte</a><a class='itemMenu' href='index.php?lang=fr#partners'>Partenaires</a>            <a href="javascript:void(0);" class="icon" onclick="responsiveMenu()">
-                <img src="img/deco/menu-responsive-btn-blanc.svg" alt="bouton menu-toggle">
-            </a>
-    </nav>
-    </div>
-</header>
-<main>
-<section id="activity">
-<article class="fullActivity">
-  <h2>
-    Parcours conté de Tour & Taxis à Bockstael
-    <button id="btnPartager" title="copy link and share">
-      <img src="img/deco/icons/share.png"></img>
-      </button>
-      </h2>
-      <span class="cardId">01</span>
-      <div class="activity-types">
-        <span class='card-type'>balade</span>
-        <span class='card-type'>nature</span>
-        <div>ici la modification</div>
-      </div>
-        <article class="activity-description">
-          <div class="activity-texte">
-            <p>
-              Qui a dit que le chemin le plus court était celui tracé par la nature ? La nature profite des interstices et suit des sentes tortueuses, recherchant tantôt l'ombre et tantôt le soleil. Qui va lentement va sûrement. Pour éviter le danger, pour profiter du moment, pour ne pas aller quelque part, mais ailleurs ; il faut prendre le rallongi qui serpente vers la liberté. Vous êtes pressé·es ? Faites un détour !
-            </p>
-            <div>Langue de l'activité : <b>|fr|</b></div>
-          </div>
-          <div class="activity-illustration">
-            <img src=img/content/01-baladeconte-passage.jpg>
-          </div>
-        </article>
-            <div class="infospratik">
-              <article class="infos-elements">
-                <h3>Infos pratiques</h3>
-                <span>Organisateur : <a href="https://www.conteenbalade.be/">Conte en balade</a> </span>
-                <hr>
-                <div>
-                  <span class="infosdates">dimanche 15 octobre<br></span>
-                  <span class="infosHoraires">15:00</span>
-                  </div>
-                  <hr>
-                  <div class="infosresa">Réservation obligatoire : <b>oui<b><br><span>Prix : 0€</span></div>
-                  <hr>
-                  <span class="infoslocation">Entrée du Parc Tour et Taxis<br>86C, Parc Tour et Taxis<br>1020 Laeken</span>
-                  <hr>
-                  <span class="infosbookinglink">
-                    <div class="booking-links">
-                      Booking via  Link : <a href="https://www.conteenbalade.be/programme/itineraire-bis/">Bookinglink</a>
-                    </div>
-                  </span>
-              </article>
-                  <div id="map2" class="infos-map-activity"></div>
-                  <script>
-                    const activityLat=50.8677651;const activityLon=4.340492;const activityTitle="Parcours conté de Tour & Taxis à Bockstael";
-                  </script>
-                  <script src="./js/share.js"></script>
-                </div>
-          </article>
-          </hr>
-        </section>
-<script>//Carte d'activité
-    var map2 = L.map('map2').setView([50.85045, 4.34878], 12);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map2);
-    // Ajouter un marqueur aux coordonnées après chargement de la page
-    document.addEventListener("DOMContentLoaded", function() {
-    // Attendre que le DOM soit complètement chargé
-    // Récupérer les coordonnées de latitude et de longitude depuis vos constantes
-    const latitude = activityLat;
-    const longitude = activityLon;
-    const titreActivity=activityTitle;
-    // Créer un marqueur et ajoutez-le à votre carte map2
-    const marker = L.marker([latitude, longitude]).addTo(map2);
-    //Ajouter une popup au marqueur
-    marker.bindPopup(titreActivity).openPopup();
-    });
-</script>
-</main>
-<footer>
-    <section id="sitemap">
-        <h2>Links</h2>
-            <div class="footerNav">
-                <nav class="navfooterbloc">
-                    <h3>Contacts</h3>
-                    <a href="info@walk.brussels">info@walk.brussels</a>
-                    <a href="tel:+0470 83 22 20">+32(0)470 83 22 20</a>
-                    <address>Marcqstraat 17 Rue Marcq<br> 1000 Bruxelles - Brussel</address>
-                </nav>
-                <nav class="navfooterbloc">
-                    <h3>Menu</h3>
-                     <a class='itemMenu' href='index.php?lang=fr#programm'>Programme</a><a class='itemMenu' href='index.php?lang=fr#map'>Carte</a><a class='itemMenu' href='index.php?lang=fr#partners'>Partenaires</a>                </nav>
-            </div>
-    </section>
-    <!--<nav id="menuRS" class="nav-rs">
-    </nav>-->
-    <div class="sponsors">
-        <figure class="sponsor">
-            <figcaption>En collaboration  avec</figcaption>
-            <a href="https://www.tousapied.be/" target="_blank" rel="noopener noreferrer"><img src="img/deco/tousapied-logo.png" alt="logo-partner"></a>
-        </figure>
-        <a href="https://mobilite-mobiliteit.brussels/fr" target="_blank" rel="noopener noreferrer">
-            <img src="img/deco/logo-sponsoring_fr_cmyk_pos_2.png" alt="logo-partner">
-        </a>
-        <figure class="sponsor">
-            <figcaption>En collaboration  avec</figcaption>
-            <a href="https://www.dagvandetrageweg.be/programma" target="_blank" rel="noopener noreferrer"><img src="img/deco/tragewegen-logo.png" alt="logo-partner"></a>
-        </figure>
-    </div>
-</footer>
-<script src="./js/app.js"></script>
-</body>
+<html lang="fr" prefix="og:http://ogp.me/ns#">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta
+		name="keywords" content="">
+		<!--Intégration des balises OpenGraph-->
+		<title>Slowwaysweekend-Parcours conté de Tour & Taxis à Bockstael</title>
+		<meta property="og:title" content="Slowwaysweekend-Parcours" conté de tour & taxis à bockstael/>
+		<meta property="og:type" content="article"/>
+		<meta property="og:url" content="https://slowwaysweekend.be?activityId=01&lang=fr"/>
+		<meta
+		property="og:image" content="https://slowwaysweekend.be/public/img/content/01-baladeconte-passage.jpg"/>
+		<!--Fin Intégration des balises OpenGraph-->
+		<link rel="stylesheet" href="./css/style.css">
+		<link rel="stylesheet" href="./css/header.css">
+		<link rel="stylesheet" href="./css/menu.css">
+		<link rel="stylesheet" href="./css/main.css">
+		<link rel="stylesheet" href="./css/footer.css">
+		<script src="./js/menu.js"></script>
+		<script src="./js/data.js"></script>
+		<script src="./js/components.js"></script>
+		<link rel="shortcut icon" type="image/png" href="favicon.ico">
+		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
+		<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+	</head>
+	<body>
+		<header>
+			<div class="mainTitleBlock">
+				<h1>
+					<a href="https://www.walk.brussels/" target="”_blank”"><img class="logo" src="img/deco/logo_blanc.svg" alt="lien vers le site walk"></a>
+				</h1>
+				<div class="mainsubtitle">
+					Slow Ways Weekend
+					<div class="menulangues">
+						<form method="get">
+							<select name="lang" id="lang" onchange="this.form.submit()">
+								<option value="fr" selected>fr</option>
+								<option value="en">en</option>
+								<option value="nl">nl</option>
+							</select>
+							<input type="hidden" name="activityId" value="01">
+						</form>
+					</div>
+				</div>
+			</div>
+			<div class="menu">
+				<nav class="responsiveMenu" id="responsiveMenu">
+					<a class='itemMenu' href='index.php?lang=fr#programm'>Programme</a>
+					<a class='itemMenu' href='index.php?lang=fr#map'>Carte</a>
+					<a class='itemMenu' href='index.php?lang=fr#partners'>Partenaires</a>
+					<a href="javascript:void(0);" class="icon" onclick="responsiveMenu()">
+						<img src="img/deco/menu-responsive-btn-blanc.svg" alt="bouton menu-toggle">
+					</a>
+				</nav>
+			</div>
+		</header>
+		<main>
+			<section id="activity">
+				<article class="fullActivity">
+					<h2>
+						Parcours conté de Tour & Taxis à Bockstael
+						<button id="btnPartager" title="copy link and share">
+							<img src="img/deco/icons/share.png"></img>
+					</button>
+				</h2>
+				<span class="cardId">01</span>
+				<div class="activity-types">
+					<span class='card-type'>balade</span>
+					<span class='card-type'>nature</span>
+				</div>
+				<article class="activity-description">
+					<div class="activity-texte">
+						<p>
+							Qui a dit que le chemin le plus court était celui tracé par la nature ? La nature profite des interstices et suit des sentes tortueuses, recherchant tantôt l'ombre et tantôt le soleil. Qui va lentement va sûrement. Pour éviter le danger, pour profiter du moment, pour ne pas aller quelque part, mais ailleurs ; il faut prendre le rallongi qui serpente vers la liberté. Vous êtes pressé·es ? Faites un détour !
+						</p>
+						<div>Langue de l'activité :
+							<b>|fr|</b>
+						</div>
+					</div>
+					<div class="activity-illustration">
+						<img src="img/content/01-baladeconte-passage.jpg">
+					</div>
+				</article>
+				<div class="infospratik">
+					<article class="infos-elements">
+						<h3>Infos pratiques</h3>
+						<span>Organisateur :
+							<a href="https://www.conteenbalade.be/">Conte en balade</a>
+						</span>
+						<hr>
+						<div>
+							<span class="infosdates">dimanche 15 octobre<br></span>
+							<span class="infosHoraires">15:00</span>
+						</div>
+						<hr>
+						<div class="infosresa">Réservation obligatoire :
+							<b>oui<b><br><span>Prix : 0€</span>
+								</div>
+								<hr>
+								<span class="infoslocation">Entrée du Parc Tour et Taxis<br>86C, Parc Tour et Taxis<br>1020 Laeken</span>
+								<hr>
+								<span class="infosbookinglink">
+									<div class="booking-links">
+										Booking via  Link :
+										<a href="https://www.conteenbalade.be/programme/itineraire-bis/">Bookinglink</a>
+									</div>
+								</span>
+							</article>
+							<div id="map2" class="infos-map-activity"></div>
+							<script>
+								const activityLat = 50.8677651;
+const activityLon = 4.340492;
+const activityTitle = "Parcours conté de Tour & Taxis à Bockstael";
+							</script>
+							<script src="./js/share.js"></script>
+						</div>
+					</article>
+				</hr>
+			</section>
+			<script>
+				// Carte d'activité
+var map2 = L.map('map2').setView([
+50.85045, 4.34878
+], 12);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map2);
+// Ajouter un marqueur aux coordonnées après chargement de la page
+document.addEventListener("DOMContentLoaded", function () {
+// Attendre que le DOM soit complètement chargé
+// Récupérer les coordonnées de latitude et de longitude depuis vos constantes
+const latitude = activityLat;
+const longitude = activityLon;
+const titreActivity = activityTitle;
+// Créer un marqueur et ajoutez-le à votre carte map2
+const marker = L.marker([latitude, longitude]).addTo(map2);
+// Ajouter une popup au marqueur
+marker.bindPopup(titreActivity).openPopup();
+});
+			</script>
+		</main>
+		<footer>
+			<section id="sitemap">
+				<h2>Links</h2>
+				<div class="footerNav">
+					<nav class="navfooterbloc">
+						<h3>Contacts</h3>
+						<a href="info@walk.brussels">info@walk.brussels</a>
+						<a href="tel:+0470 83 22 20">+32(0)470 83 22 20</a>
+						<address>Marcqstraat 17 Rue Marcq<br>
+							1000 Bruxelles - Brussel</address>
+					</nav>
+					<nav class="navfooterbloc">
+						<h3>Menu</h3>
+						<a class='itemMenu' href='index.php?lang=fr#programm'>Programme</a>
+						<a class='itemMenu' href='index.php?lang=fr#map'>Carte</a>
+						<a class='itemMenu' href='index.php?lang=fr#partners'>Partenaires</a>
+					</nav>
+				</div>
+			</section>
+			<!--<nav id="menuRS" class="nav-rs">
+			    </nav>-->
+			<div class="sponsors">
+				<figure class="sponsor">
+					<figcaption>En collaboration  avec</figcaption>
+					<a href="https://www.tousapied.be/" target="_blank" rel="noopener noreferrer"><img src="img/deco/tousapied-logo.png" alt="logo-partner"></a>
+				</figure>
+				<a href="https://mobilite-mobiliteit.brussels/fr" target="_blank" rel="noopener noreferrer">
+					<img src="img/deco/logo-sponsoring_fr_cmyk_pos_2.png" alt="logo-partner">
+				</a>
+				<figure class="sponsor">
+					<figcaption>En collaboration  avec</figcaption>
+					<a href="https://www.dagvandetrageweg.be/programma" target="_blank" rel="noopener noreferrer"><img src="img/deco/tragewegen-logo.png" alt="logo-partner"></a>
+				</figure>
+			</div>
+		</footer>
+		<script src="./js/app.js"></script>
+	</body>
 </html>
