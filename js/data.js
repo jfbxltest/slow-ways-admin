@@ -1,15 +1,23 @@
 const getActivityById = (id) => obj[1].activities?.find((a) => a.id == id);
+
 const getRefs = () => obj[0].refs;
 
-const uptadeActivityData = (id, data) => {
-  console.log("***** data activity updated", data);
+const uptadeActivityDescriptions = (activityId, description) => {
+  const activity = obj[1].activities?.find((a) => a.id == activityId);
+  activity.description = description;
 };
 
-const uptadeActivityDescriptions = (activityId, description) => {
-  console.log(
-    `***** descriptions for activity ${activityId} are updated`,
-    description
-  );
+const uptadeActivityTypes = (activityId, types) => {
+  const activity = obj[1].activities?.find((a) => a.id == activityId);
+  activity.types = types;
+};
+
+const uptadeActivityLanguages = (activityId, languages) => {
+  const activity = obj[1].activities?.find((a) => a.id == activityId);
+  activity.languages = languages;
+};
+const uptadeActivityData = (id, data) => {
+  console.log("***** data activity updated", data);
 };
 
 const obj = [
@@ -72,7 +80,8 @@ const obj = [
         { en: ["all", "children", "adult"] },
         { nl: ["enderen", "kinderen", "adult"] },
       ],
-      language: ["none", "nederland", "french", "english"],
+      languages: ["none", "nederland", "french", "english"],
+      langs: ["", "nl", "fr", "en"],
       infosPratiques: {
         fr: "Infos pratiques",
         en: "Practical info",
@@ -142,7 +151,7 @@ const obj = [
           },
         },
         public: ["all", "children", "adult"],
-        language: ["fr"],
+        languages: ["fr"],
       },
       {
         id: "02",

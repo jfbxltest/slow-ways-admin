@@ -1,6 +1,6 @@
 const CSS_Editable = `
 #toolbox button {
-  font-size: 1.25em;
+  font-size: 1em;
 }
 `;
 const HTML_Editable = `
@@ -11,7 +11,7 @@ const HTML_Editable = `
   <span id="in-edit">
   <button id="close-button">⬅️</button>
   <button id="save-button" disabled>✔️</button>
-  <button id="reset-button">🔁</button>
+  <button id="reset-button" hidden>🔁</button>
   </span>
 </div>
 <div id="wrapper" hidden></div>`;
@@ -58,6 +58,7 @@ class EditableElement extends HTMLElement {
     });
     shadow.getElementById("close-button").addEventListener("click", (evt) => {
       evt.stopPropagation();
+      //TODO: reset all ???
       setStateEdit(false);
     });
 
@@ -73,7 +74,7 @@ class EditableElement extends HTMLElement {
   }
 
   setAltered(value) {
-    console.log("set altered global", value);
+    this.isAltered = value;
     this.shadowRoot.getElementById("save-button").disabled = !value;
   }
 }
@@ -120,7 +121,6 @@ const CSS_Tabs = `
   resize: none;
   background-color: #ecfccb;
 }
-
 .altered {
   background-color: #ffedd5;
 }
@@ -192,7 +192,7 @@ class TabsEditableElement extends EditableElement {
     const handleChangeContent = (evt) => {
       evt.stopPropagation();
       const content = evt.target;
-      if (content.isAltered) return;
+      if (content.isAltered) return; // don't work: TOTO on main branch
       this.setAltered(true); // enabled | disabled save button
       content.setAltered(true);
       this.setResetButton(true, callbackResetContent(content));
@@ -205,11 +205,11 @@ class TabsEditableElement extends EditableElement {
     };
 
     const callbackResetContent = (content) => {
-      // (evt) is the button control for reset action.
+      // (evt.target) is the button control for reset action.
       // we must hidden it when the content is clean
       return (evt) => {
         evt.stopPropagation();
-        this.setAltered(false); // enabled | disabled save button // wrong ***** TODO: this.setAltered(false) only when no one content are altered
+        this.setAltered(false); // enabled | disabled save button (fix bug)
         content.setAltered(false);
         content.value = data[content.headerKey];
         evt.target.style.display = "none";
@@ -235,10 +235,8 @@ class TabsEditableElement extends EditableElement {
       const header = document.createElement("button");
       header.innerText = headerData;
       header.headerKey = headerData;
-      header.setAltered = function (value) {
-        value
-          ? this.classList.add("altered")
-          : this.classList.remove("altered");
+      header.setAltered = function () {
+        this.classList.toggle("altered");
       };
       header.setActive = function (value) {
         value ? this.classList.add("active") : this.classList.remove("active");
@@ -251,10 +249,8 @@ class TabsEditableElement extends EditableElement {
       content.classList.add("content-item");
       content.value = contentData;
       content.headerKey = headerData;
-      content.setAltered = function (value) {
-        value
-          ? this.classList.add("altered")
-          : this.classList.remove("altered");
+      content.setAltered = function () {
+        this.classList.toggle("altered");
       };
       content.oninput = (evt) => handleChangeContent(evt);
       contentElement.appendChild(content);
@@ -274,42 +270,122 @@ customElements.define("tabs-editable", TabsEditableElement);
  *  ////////////////////////////////////////////////////////////////////////////////////////////////////
  */
 
-const HTML_Options = `
-<div id="tabs-header"></div>
-<div id="tabs-content"></div>
-<ul id="options"></ul>
+const CSS_Options = `
+#options {
+  padding: 1em 0;
+  display: flex;
+  flex-wrap: wrap;
+}
+.option {
+  margin-left: 1.25em;
+ 
+
+}
+.altered {
+  background-color: #ffedd5;
+}
+.save {
+  background-color: #ecfccb;
+}
 `;
+
+const HTML_Options = `
+<div id="options" class="save"></div>
+`;
+
 class OptionsEditableElement extends EditableElement {
   constructor(params) {
-    super(HTML_Options, updatingData);
-    const { target, data, lang, callback } = { ...params };
+    super(HTML_Options, handleSave);
+    const { data, handleUpdate } = { ...params };
     const shadow = this.shadowRoot;
-    function updatingData() {
-      // callback(data);
+
+    const style = document.createElement("style");
+    style.innerHTML = CSS_Options;
+    shadow.appendChild(style);
+
+    function handleSave() {
+      const options = [];
+      getOptions().forEach((option, index) => {
+        if (option.checked) {
+          options.push(index);
+        }
+      });
+      // !!! si il n'ya aucune option
+      if (options.length < 1) {
+        alert("vous devez renseigner une option (au minimum)");
+        return;
+      }
+      data.options = options; // ????
+      handleUpdate(options);
+
+      shadow.querySelector("#options").classList.remove("altered");
+      shadow.querySelector("#options").classList.add("save");
     }
 
+    /**
+     * Utils functions  - getOptions() - toogleWrapperAltered()
+     */
+    const getOptions = () => shadow.querySelectorAll("#options input");
+    const toogleWrapperAltered = () => {
+      shadow.querySelector("#options").classList.toggle("altered");
+      shadow.querySelector("#options").classList.toggle("save");
+    };
+
+    /**
+     *   handles and callback functions
+     *   -------------------------------
+     *  - handleChangeOption
+     *  - callbackResetOptions
+     */
+
+    const handleChangeOption = (evt) => {
+      evt.stopPropagation();
+      if (this.isAltered) return;
+      this.setAltered(true); // enabled | disabled save button
+      toogleWrapperAltered();
+      this.setResetButton(true, callbackResetOptions());
+    };
+
+    const callbackResetOptions = () => {
+      // (evt.target) is the button control for reset action.
+      // we must hidden it when the content is clean
+      return (evt) => {
+        evt.stopPropagation();
+        this.setAltered(false); // enabled | disabled save button (fix bug)
+        toogleWrapperAltered();
+        getOptions().forEach((option) => (option.checked = option.initial));
+        evt.target.style.display = "none";
+      };
+    };
     /**
      *  Create and initialize elements ( headers and contents)
      *  -----------------------------------------------------
      */
 
-    const refs = data.refs[lang];
-    const options = data.options;
-
+    const { refs, options } = data;
+    console.log("options of activity: ", options);
     const isInOptions = (index) => {
-      return options.find((option) => option == index);
+      return options.includes(index);
     };
 
     const optionsElement = shadow.querySelector("#options");
     refs.forEach((ref, index) => {
-      const option = document.createElement("LI");
-      option.innerHTML = `
-      <input type="checkbox" id="option-${index}" name="option-${index}" ${
-        isInOptions(index) ? "checked" : ""
-      }>
-      <label for="option-${index}">${ref}</label>
-      `;
-      optionsElement.appendChild(option);
+      const div = document.createElement("div");
+      const input = document.createElement("input");
+      const label = document.createElement("label");
+      div.classList.add("option");
+
+      input.setAttribute("type", "checkbox");
+      input.setAttribute("id", `toggle-${index}`);
+      input.initial = isInOptions(index);
+      input.checked = input.initial;
+      input.onchange = (evt) => handleChangeOption(evt);
+
+      label.setAttribute("for", `toggle-${index}`);
+      label.innerText = ref;
+
+      div.append(input, label);
+      optionsElement.appendChild(div);
     });
   }
 }
