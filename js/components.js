@@ -2,6 +2,12 @@ const CSS_Editable = `
 #toolbox button {
   font-size: 1em;
 }
+.altered {
+  background-color: #ffedd5;
+}
+.save {
+  background-color: #ecfccb;
+}
 `;
 const HTML_Editable = `
 <div id="toolbox">
@@ -26,7 +32,12 @@ class EditableElement extends HTMLElement {
     style.innerHTML = CSS_Editable;
     shadow.appendChild(style);
 
-    shadow.getElementById("wrapper").innerHTML = HTML_child;
+    this.wrapperElement = shadow.getElementById("wrapper");
+    this.wrapperElement.innerHTML = HTML_child;
+    // this.wrapperElement.toogleAltered = function () {
+    //   this.classList.toggle("altered");
+    //   this.classList.toggle("save");
+    // };
 
     // this.altered = false;
     const setStateEdit = (isOnEdit) => {
@@ -51,7 +62,7 @@ class EditableElement extends HTMLElement {
         handleSave();
         // setStateEdit(false); // keeping in edit mode after safe action
         this.setAltered(false);
-        this.setResetButton(false);
+        this.displayResetButton(false);
       } catch (e) {
         alert(e);
       }
@@ -65,7 +76,7 @@ class EditableElement extends HTMLElement {
     setStateEdit(false);
   }
 
-  setResetButton(display, handleOnClick) {
+  displayResetButton(display, handleOnClick) {
     const button = this.shadowRoot.getElementById("reset-button");
     button.style.display = display ? "inline" : "none";
     if (handleOnClick) {
@@ -76,6 +87,7 @@ class EditableElement extends HTMLElement {
   setAltered(value) {
     this.isAltered = value;
     this.shadowRoot.getElementById("save-button").disabled = !value;
+    // this.wrapperElement.toogleAltered();
   }
 }
 /**
@@ -121,15 +133,11 @@ const CSS_Tabs = `
   resize: none;
   background-color: #ecfccb;
 }
-.altered {
-  background-color: #ffedd5;
-}
+
 button.altered::after {
   content: " *";
 }
-.save {
-  background-color: #ecfccb;
-}
+
 `;
 
 const HTML_Tabs = `
@@ -176,7 +184,7 @@ class TabsEditableElement extends EditableElement {
       getContents().forEach((content) => {
         if (content.headerKey == headerKey) {
           content.style.display = "block";
-          this.setResetButton(
+          this.displayResetButton(
             content.classList.contains("altered"),
             callbackResetContent(content)
           );
@@ -195,7 +203,7 @@ class TabsEditableElement extends EditableElement {
       if (content.isAltered) return; // don't work: TOTO on main branch
       this.setAltered(true); // enabled | disabled save button
       content.setAltered(true);
-      this.setResetButton(true, callbackResetContent(content));
+      this.displayResetButton(true, callbackResetContent(content));
       //marque * on the button tab if content is altered
       getHeaders().forEach((header) => {
         if (header.headerKey == content.headerKey) {
@@ -278,14 +286,6 @@ const CSS_Options = `
 }
 .option {
   margin-left: 1.25em;
- 
-
-}
-.altered {
-  background-color: #ffedd5;
-}
-.save {
-  background-color: #ecfccb;
 }
 `;
 
@@ -305,7 +305,7 @@ class OptionsEditableElement extends EditableElement {
 
     function handleSave() {
       const options = [];
-      getOptions().forEach((option, index) => {
+      optionsInputs.forEach((option, index) => {
         if (option.checked) {
           options.push(index);
         }
@@ -315,21 +315,14 @@ class OptionsEditableElement extends EditableElement {
         alert("vous devez renseigner une option (au minimum)");
         return;
       }
-      data.options = options; // ????
       handleUpdate(options);
-
-      shadow.querySelector("#options").classList.remove("altered");
-      shadow.querySelector("#options").classList.add("save");
+      //update local if uptading global is "ok"
+      wrapperElement.toogleAltered;
+      data.options = options; // ????
+      optionsInputs.forEach((option) => {
+        option.initial = option.checked;
+      });
     }
-
-    /**
-     * Utils functions  - getOptions() - toogleWrapperAltered()
-     */
-    const getOptions = () => shadow.querySelectorAll("#options input");
-    const toogleWrapperAltered = () => {
-      shadow.querySelector("#options").classList.toggle("altered");
-      shadow.querySelector("#options").classList.toggle("save");
-    };
 
     /**
      *   handles and callback functions
@@ -342,8 +335,8 @@ class OptionsEditableElement extends EditableElement {
       evt.stopPropagation();
       if (this.isAltered) return;
       this.setAltered(true); // enabled | disabled save button
-      toogleWrapperAltered();
-      this.setResetButton(true, callbackResetOptions());
+      wrapperElement.toogleAltered;
+      this.displayResetButton(true, callbackResetOptions());
     };
 
     const callbackResetOptions = () => {
@@ -352,8 +345,8 @@ class OptionsEditableElement extends EditableElement {
       return (evt) => {
         evt.stopPropagation();
         this.setAltered(false); // enabled | disabled save button (fix bug)
-        toogleWrapperAltered();
-        getOptions().forEach((option) => (option.checked = option.initial));
+        wrapperElement.toogleAltered();
+        optionsInputs.forEach((option) => (option.checked = option.initial));
         evt.target.style.display = "none";
       };
     };
@@ -363,12 +356,14 @@ class OptionsEditableElement extends EditableElement {
      */
 
     const { refs, options } = data;
-    console.log("options of activity: ", options);
     const isInOptions = (index) => {
       return options.includes(index);
     };
-
-    const optionsElement = shadow.querySelector("#options");
+    const wrapperElement = shadow.querySelector("#options");
+    wrapperElement.toogleAltered = function () {
+      this.classList.toggle("altered");
+      this.classList.toggle("save");
+    };
     refs.forEach((ref, index) => {
       const div = document.createElement("div");
       const input = document.createElement("input");
@@ -385,9 +380,197 @@ class OptionsEditableElement extends EditableElement {
       label.innerText = ref;
 
       div.append(input, label);
-      optionsElement.appendChild(div);
+      wrapperElement.appendChild(div);
     });
+    const optionsInputs = shadow.querySelectorAll("#options input");
   }
 }
 
 customElements.define("options-editable", OptionsEditableElement);
+
+/**
+ *  ////////////////////////////////////////////////////////////////////////////////////////////////////
+ *
+ *                                --- INPUT EDITABLE ELEMENT ----
+ *
+ *  ////////////////////////////////////////////////////////////////////////////////////////////////////
+ *
+ */
+
+const CSS_Input = `
+#input-wrapper {
+  padding: 1em;
+}
+#input-content {
+  display: block;
+  overflow: hidden;
+  width: 100%;
+}
+
+`;
+
+const HTML_Input = `
+<div id="input-wrapper" class="save"></div>
+`;
+
+class InputEditableElement extends EditableElement {
+  constructor(params) {
+    super(HTML_Input, handleSave);
+    const { data, multiligne = false, handleUpdate } = { ...params };
+    const shadow = this.shadowRoot;
+
+    const style = document.createElement("style");
+    style.innerHTML = CSS_Input;
+    shadow.appendChild(style);
+
+    function handleSave() {
+      //call updating callback function and update local data
+      handleUpdate(input.value);
+      input.initial = input.value;
+      wrapperElement.toogleAltered();
+    }
+
+    /**
+     *   handles and callback functions
+     *   -------------------------------
+     *  - handleChange
+     *  - callbackReset
+     */
+
+    const handleChange = (evt) => {
+      evt.stopPropagation();
+      if (this.isAltered) return;
+      this.setAltered(true); // enabled | disabled save button
+      wrapperElement.toogleAltered();
+      this.displayResetButton(true, callbackReset());
+    };
+
+    const callbackReset = () => {
+      // (evt.target) is the button control for reset action.
+      // we must hidden it when the content is clean
+      return (evt) => {
+        evt.stopPropagation();
+        this.setAltered(false); // enabled | disabled save button (fix bug)
+        wrapperElement.toogleAltered();
+        // const input = getInput();
+        input.value = input.initial;
+        evt.target.style.display = "none";
+      };
+    };
+
+    /**
+     *  Create and initialize element
+     *  -----------------------------
+     */
+    const wrapperElement = shadow.querySelector("#input-wrapper");
+    wrapperElement.toogleAltered = function () {
+      this.classList.toggle("altered");
+      this.classList.toggle("save");
+    };
+    const inputType = multiligne ? "textarea" : "input";
+
+    const input = document.createElement(inputType);
+    input.setAttribute("id", "input-content");
+    input.value = input.initial = data;
+    input.oninput = (evt) => handleChange(evt);
+
+    wrapperElement.appendChild(input);
+  }
+}
+
+customElements.define("input-editable", InputEditableElement);
+
+/**
+ *  ////////////////////////////////////////////////////////////////////////////////////////////////////
+ *
+ *                                --- LINK EDITABLE ELEMENT ----
+ *
+ *  ////////////////////////////////////////////////////////////////////////////////////////////////////
+ *
+ */
+const CSS_Link = `
+#link-wrapper {
+  padding: 1em;
+}
+.link-content {
+  display: block;
+  overflow: hidden;
+  width: 100%;
+}
+`;
+
+const HTML_Link = `
+<div id="link-wrapper" class="save"></div>
+`;
+
+class LinkEditableElement extends EditableElement {
+  constructor(params) {
+    super(HTML_Link, handleSave);
+    const { data, handleUpdate } = { ...params };
+    const shadow = this.shadowRoot;
+
+    const style = document.createElement("style");
+    style.innerHTML = CSS_Link;
+    shadow.appendChild(style);
+
+    function handleSave() {
+      //call updating callback function and update local data
+      handleUpdate({ label: label.value, target: target.value });
+      data.label = label.value;
+      data.target = target.value;
+      wrapperElement.toogleAltered();
+    }
+
+    /**
+     *   handles and callback functions
+     *   -------------------------------
+     *  - handleChange
+     *  - callbackReset
+     */
+
+    const handleChange = (evt) => {
+      evt.stopPropagation();
+      if (this.isAltered) return;
+      this.setAltered(true); // enabled | disabled save button
+      wrapperElement.toogleAltered();
+      this.displayResetButton(true, callbackReset());
+    };
+
+    const callbackReset = () => {
+      // (evt.target) is the button control for reset action.
+      // we must hidden it when the content is clean
+      return (evt) => {
+        evt.stopPropagation();
+        this.setAltered(false); // enabled | disabled save button (fix bug)
+        wrapperElement.toogleAltered();
+        label.value = data.label;
+        target.value = data.target;
+        evt.target.style.display = "none";
+      };
+    };
+
+    /**
+     *  Create and initialize element
+     *  -----------------------------
+     */
+    const wrapperElement = shadow.querySelector("#link-wrapper");
+    wrapperElement.toogleAltered = function () {
+      this.classList.toggle("altered");
+      this.classList.toggle("save");
+    };
+    const label = document.createElement("input");
+    const target = document.createElement("input");
+    label.classList.add("link-label");
+    target.classList.add("link-target");
+
+    label.value = data.label;
+    target.value = data.target;
+
+    label.oninput = (evt) => handleChange(evt);
+    target.oninput = (evt) => handleChange(evt);
+    wrapperElement.appendChild(label);
+    wrapperElement.appendChild(target);
+  }
+}
+
+customElements.define("link-editable", LinkEditableElement);

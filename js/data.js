@@ -2,7 +2,12 @@ const getActivityById = (id) => obj[1].activities?.find((a) => a.id == id);
 
 const getRefs = () => obj[0].refs;
 
-const uptadeActivityDescriptions = (activityId, description) => {
+const uptadeActivityTitle = (activityId, title) => {
+  const activity = obj[1].activities?.find((a) => a.id == activityId);
+  activity.title = title;
+};
+
+const uptadeActivityDescription = (activityId, description) => {
   const activity = obj[1].activities?.find((a) => a.id == activityId);
   activity.description = description;
 };
@@ -16,6 +21,12 @@ const uptadeActivityLanguages = (activityId, languages) => {
   const activity = obj[1].activities?.find((a) => a.id == activityId);
   activity.languages = languages;
 };
+
+const uptadeActivityOrganisateur = (activityId, organisateur) => {
+  const activity = obj[1].activities?.find((a) => a.id == activityId);
+  activity.organisateur = organisateur;
+};
+
 const uptadeActivityData = (id, data) => {
   console.log("***** data activity updated", data);
 };
