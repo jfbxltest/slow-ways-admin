@@ -1,3 +1,6 @@
+const ALTERED = "altered";
+const SAVED = "saved";
+
 const CSS_Editable = `
 #toolbox button {
   font-size: 1em;
@@ -5,7 +8,7 @@ const CSS_Editable = `
 .altered {
   background-color: #ffedd5;
 }
-.save {
+.saved {
   background-color: #ecfccb;
 }
 `;
@@ -20,9 +23,14 @@ const HTML_Editable = `
   <button id="reset-button" hidden>🔁</button>
   </span>
 </div>
-<div id="wrapper" hidden></div>`;
+<div id="wrapper" hidden class="saved"></div>`;
 
 class EditableElement extends HTMLElement {
+  _toggleAltered(element) {
+    this.classList.toggle(ALTERED);
+    this.classList.toggle(SAVED);
+  }
+
   constructor(HTML_child, handleSave) {
     super();
     const shadow = this.attachShadow({ mode: "open" });
@@ -34,22 +42,19 @@ class EditableElement extends HTMLElement {
 
     this.wrapperElement = shadow.getElementById("wrapper");
     this.wrapperElement.innerHTML = HTML_child;
-    // this.wrapperElement.toogleAltered = function () {
-    //   this.classList.toggle("altered");
-    //   this.classList.toggle("save");
-    // };
+    this.wrapperElement.toogleAltered = function () {
+      this.classList.toggle(ALTERED);
+      this.classList.toggle(SAVED);
+    };
+
+    const outEditToolbox = shadow.getElementById("out-edit");
+    const inEditToolbox = shadow.getElementById("in-edit");
 
     // this.altered = false;
     const setStateEdit = (isOnEdit) => {
-      shadow.getElementById("out-edit").style.display = isOnEdit
-        ? "none"
-        : "inline";
-      shadow.getElementById("in-edit").style.display = isOnEdit
-        ? "inline"
-        : "none";
-      shadow.getElementById("wrapper").style.display = isOnEdit
-        ? "block"
-        : "none";
+      outEditToolbox.style.display = isOnEdit ? "none" : "inline";
+      inEditToolbox.style.display = isOnEdit ? "inline" : "none";
+      this.wrapperElement.style.display = isOnEdit ? "block" : "none";
     };
 
     shadow.getElementById("edit-button").addEventListener("click", (evt) => {
@@ -58,14 +63,14 @@ class EditableElement extends HTMLElement {
     });
     shadow.getElementById("save-button").addEventListener("click", (evt) => {
       evt.stopPropagation();
-      try {
-        handleSave();
-        // setStateEdit(false); // keeping in edit mode after safe action
-        this.setAltered(false);
-        this.displayResetButton(false);
-      } catch (e) {
-        alert(e);
-      }
+      // try {
+      handleSave();
+      // setStateEdit(false); // keeping in edit mode after safe action
+      this.setAltered(false);
+      this.displayResetButton(false);
+      // } catch (e) {
+      //   alert(e);
+      // }
     });
     shadow.getElementById("close-button").addEventListener("click", (evt) => {
       evt.stopPropagation();
@@ -85,9 +90,11 @@ class EditableElement extends HTMLElement {
   }
 
   setAltered(value) {
-    this.isAltered = value;
-    this.shadowRoot.getElementById("save-button").disabled = !value;
-    // this.wrapperElement.toogleAltered();
+    if (this.aletered != value) {
+      this.isAltered = value;
+      this.shadowRoot.getElementById("save-button").disabled = !value;
+      this.wrapperElement.toogleAltered();
+    }
   }
 }
 /**
@@ -133,11 +140,12 @@ const CSS_Tabs = `
   resize: none;
   background-color: #ecfccb;
 }
-
+.content-item.altered {
+  background-color: #ffedd5;
+}
 button.altered::after {
   content: " *";
 }
-
 `;
 
 const HTML_Tabs = `
@@ -157,19 +165,12 @@ class TabsEditableElement extends EditableElement {
 
     function handleSave() {
       //call updating callback function and update local data
-      const contents = getContents();
       contents.forEach((content) => (data[content.headerKey] = content.value));
       handleUpdate(data);
       contents.forEach((content) => content.setAltered(false));
       //un-marque * on the button tab if content is altered
-      getHeaders().forEach((header) => header.setAltered(false));
+      headers.forEach((header) => header.setAltered(false));
     }
-
-    /**
-     * Utils functions - getContents()  - getHeaders()
-     */
-    const getContents = () => shadow.querySelectorAll(".content-item");
-    const getHeaders = () => shadow.querySelectorAll("#tabs-header button");
 
     /**
      *   handles and callback functions
@@ -181,18 +182,18 @@ class TabsEditableElement extends EditableElement {
 
     const handleSetCurentContent = (headerKey, evt) => {
       evt?.stopPropagation();
-      getContents().forEach((content) => {
+      contents.forEach((content) => {
         if (content.headerKey == headerKey) {
           content.style.display = "block";
           this.displayResetButton(
-            content.classList.contains("altered"),
+            content.classList.contains(ALTERED),
             callbackResetContent(content)
           );
         } else {
           content.style.display = "none";
         }
       });
-      getHeaders().forEach((header) =>
+      headers.forEach((header) =>
         header.setActive(header.headerKey == headerKey)
       );
     };
@@ -200,12 +201,12 @@ class TabsEditableElement extends EditableElement {
     const handleChangeContent = (evt) => {
       evt.stopPropagation();
       const content = evt.target;
-      if (content.isAltered) return; // don't work: TOTO on main branch
+      if (content.isAltered()) return;
       this.setAltered(true); // enabled | disabled save button
       content.setAltered(true);
       this.displayResetButton(true, callbackResetContent(content));
       //marque * on the button tab if content is altered
-      getHeaders().forEach((header) => {
+      headers.forEach((header) => {
         if (header.headerKey == content.headerKey) {
           header.setAltered(true);
         }
@@ -222,7 +223,7 @@ class TabsEditableElement extends EditableElement {
         content.value = data[content.headerKey];
         evt.target.style.display = "none";
         //marque * on the button tab if content is altered
-        getHeaders().forEach((header) => {
+        headers.forEach((header) => {
           if (header.headerKey == content.headerKey) {
             header.setAltered(false);
           }
@@ -243,8 +244,8 @@ class TabsEditableElement extends EditableElement {
       const header = document.createElement("button");
       header.innerText = headerData;
       header.headerKey = headerData;
-      header.setAltered = function () {
-        this.classList.toggle("altered");
+      header.setAltered = function (value) {
+        value ? this.classList.add(ALTERED) : this.classList.remove(ALTERED);
       };
       header.setActive = function (value) {
         value ? this.classList.add("active") : this.classList.remove("active");
@@ -257,13 +258,18 @@ class TabsEditableElement extends EditableElement {
       content.classList.add("content-item");
       content.value = contentData;
       content.headerKey = headerData;
-      content.setAltered = function () {
-        this.classList.toggle("altered");
+      content.setAltered = function (value) {
+        value ? this.classList.add(ALTERED) : this.classList.remove(ALTERED);
+      };
+      content.isAltered = function () {
+        return this.classList.contains(ALTERED);
       };
       content.oninput = (evt) => handleChangeContent(evt);
       contentElement.appendChild(content);
     }
 
+    const contents = shadow.querySelectorAll(".content-item");
+    const headers = shadow.querySelectorAll("#tabs-header button");
     handleSetCurentContent(lang);
   }
 }
@@ -357,11 +363,13 @@ class OptionsEditableElement extends EditableElement {
 
     const { refs, options } = data;
     const isInOptions = (index) => {
-      return options.includes(index);
+      // console.log("in isInOption", options, index);
+      // console.log("result", options.includes(+index));
+      return options.includes(+index);
     };
     const wrapperElement = shadow.querySelector("#options");
     wrapperElement.toogleAltered = function () {
-      this.classList.toggle("altered");
+      this.classList.toggle(ALTERED);
       this.classList.toggle("save");
     };
     refs.forEach((ref, index) => {
@@ -373,9 +381,9 @@ class OptionsEditableElement extends EditableElement {
       input.setAttribute("type", "checkbox");
       input.setAttribute("id", `toggle-${index}`);
       input.initial = isInOptions(index);
-      input.checked = input.initial;
+      input.checked = isInOptions(index);
       input.onchange = (evt) => handleChangeOption(evt);
-
+      console.log("input cheked", input.checked);
       label.setAttribute("for", `toggle-${index}`);
       label.innerText = ref;
 
@@ -464,8 +472,8 @@ class InputEditableElement extends EditableElement {
      */
     const wrapperElement = shadow.querySelector("#input-wrapper");
     wrapperElement.toogleAltered = function () {
-      this.classList.toggle("altered");
-      this.classList.toggle("save");
+      this.classList.toggle(ALTERED);
+      this.classList.toggle(SAVED);
     };
     const inputType = multiligne ? "textarea" : "input";
 
@@ -518,7 +526,6 @@ class LinkEditableElement extends EditableElement {
       handleUpdate({ label: label.value, target: target.value });
       data.label = label.value;
       data.target = target.value;
-      wrapperElement.toogleAltered();
     }
 
     /**
@@ -532,7 +539,6 @@ class LinkEditableElement extends EditableElement {
       evt.stopPropagation();
       if (this.isAltered) return;
       this.setAltered(true); // enabled | disabled save button
-      wrapperElement.toogleAltered();
       this.displayResetButton(true, callbackReset());
     };
 
@@ -542,7 +548,6 @@ class LinkEditableElement extends EditableElement {
       return (evt) => {
         evt.stopPropagation();
         this.setAltered(false); // enabled | disabled save button (fix bug)
-        wrapperElement.toogleAltered();
         label.value = data.label;
         target.value = data.target;
         evt.target.style.display = "none";
@@ -553,11 +558,7 @@ class LinkEditableElement extends EditableElement {
      *  Create and initialize element
      *  -----------------------------
      */
-    const wrapperElement = shadow.querySelector("#link-wrapper");
-    wrapperElement.toogleAltered = function () {
-      this.classList.toggle("altered");
-      this.classList.toggle("save");
-    };
+
     const label = document.createElement("input");
     const target = document.createElement("input");
     label.classList.add("link-label");
@@ -568,8 +569,8 @@ class LinkEditableElement extends EditableElement {
 
     label.oninput = (evt) => handleChange(evt);
     target.oninput = (evt) => handleChange(evt);
-    wrapperElement.appendChild(label);
-    wrapperElement.appendChild(target);
+    this.wrapperElement.appendChild(label);
+    this.wrapperElement.appendChild(target);
   }
 }
 

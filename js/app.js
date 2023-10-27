@@ -2,41 +2,47 @@ function loadActivityById(id) {
   const activityData = getActivityById(id);
   const refs = getRefs();
 
-  const updateUI_Title = (target, title) => {
-    target.innerText = title;
+  /**
+   * FONCTIONS UPDATE DISPLAY HTML
+   */
+
+  const formatingText = (format, text) => (format ? format(text) : text);
+
+  const updateHTML = {
+    text: (target, text, format) => {
+      target.innerText = formatingText(format, text);
+    },
+    options: (target, options, refs, format) => {
+      console.log(
+        "into update html options...options,  refs;: ",
+        options,
+        refs
+      );
+      //We need a child element for clone it
+      const existingCount = target.childElementCount;
+      if (existingCount < 1)
+        throw new error(
+          "a option's field must have minimum one element on the HTML page"
+        );
+      // go
+      const model = target.firstElementChild.cloneNode(true);
+      const elements = [];
+      options.forEach((option) => {
+        const clone = model.cloneNode(true);
+        clone.innerText = formatingText(format, refs[option]);
+        elements.push(clone);
+      });
+      target.replaceChildren(...elements);
+    },
+    link: (target, link, format) => {
+      target.innerText = formatingText(format, link.label);
+      target.href = link.target;
+    },
   };
 
-  const updateUI_Description = (target, description) => {
-    target.innerText = description[document.documentElement.lang];
-  };
-
-  const updateUI_Types = (target, types) => {
-    const refsType = refs.types[document.documentElement.lang];
-    //We need a child element for clone it
-    const existingCount = target.childElementCount;
-    if (existingCount < 1)
-      throw new error("activity must have minimum one type");
-    // go
-    const model = target.firstElementChild.cloneNode(true);
-    const elements = [];
-    types.forEach((type) => {
-      const clone = model.cloneNode(true);
-      clone.innerText = refsType[type];
-      elements.push(clone);
-    });
-    target.replaceChildren(...elements);
-  };
-
-  const updateUI_Languages = (target, langs) => {
-    const refsLangs = refs.langs;
-    const elements = [];
-    langs.forEach((lang) => {
-      const element = document.createElement("b");
-      element.innerText = `|${refsLangs[lang]}|`;
-      elements.push(element);
-    });
-    target.replaceChildren(...elements);
-  };
+  /**
+   *  MAPPING FIELDS
+   */
 
   const elements = {
     title: {
@@ -47,8 +53,8 @@ function loadActivityById(id) {
         multiligne: false,
       },
       handleUpdate: (activityId, target) => (title) => {
-        uptadeActivityTitle(activityId, title);
-        updateUI_Title(target, title);
+        uptadeActivityByField(activityId, "title", title);
+        updateHTML.text(target, title);
       },
     },
     descriptif: {
@@ -56,12 +62,12 @@ function loadActivityById(id) {
       component: TabsEditableElement,
       options: {
         data: activityData.description,
-        multiligne: false,
+        multiligne: true,
         lang: document.documentElement.lang,
       },
       handleUpdate: (activityId, target) => (description) => {
-        uptadeActivityDescription(activityId, description);
-        updateUI_Description(target, description);
+        uptadeActivityByField(activityId, "description", description);
+        updateHTML.text(target, description[document.documentElement.lang]);
       },
     },
     types: {
@@ -74,8 +80,12 @@ function loadActivityById(id) {
         },
       },
       handleUpdate: (activityId, target) => (types) => {
-        uptadeActivityTypes(activityId, types);
-        updateUI_Types(target, types);
+        uptadeActivityByField(activityId, "types", types);
+        updateHTML.options(
+          target,
+          types,
+          refs.types[document.documentElement.lang]
+        );
       },
     },
     languages: {
@@ -83,13 +93,18 @@ function loadActivityById(id) {
       component: OptionsEditableElement,
       options: {
         data: {
-          refs: refs.languages.slice(1), // remove "" (the first element)
+          refs: refs.languages, //.slice(1), // remove "" (the first element)
           options: activityData.languages,
         },
       },
       handleUpdate: (activityId, target) => (languages) => {
-        uptadeActivityLanguages(activityId, languages);
-        updateUI_Languages(target, languages);
+        uptadeActivityByField(activityId, "languages", languages);
+        updateHTML.options(
+          target,
+          languages,
+          refs.languages,
+          (t) => ` |${t}| `
+        );
       },
     },
     organisateur: {
@@ -102,8 +117,11 @@ function loadActivityById(id) {
         },
       },
       handleUpdate: (activityId, target) => (organisateur) => {
-        uptadeActivityOganisateur(activityId, organisateur);
-        updateUI_Languages(target, organisateur);
+        uptadeActivityByField(activityId, "organisateur", {
+          name: organisateur.label,
+          link: organisateur.target,
+        });
+        updateHTML.link(target, organisateur);
       },
     },
   };
@@ -113,6 +131,10 @@ function loadActivityById(id) {
     target?.after(
       new el.component({
         handleUpdate: el.handleUpdate(id, target),
+        handleUpdate2: (result) => {
+          //update data with name of field
+          //update UI Html
+        },
         ...el.options,
       })
     );

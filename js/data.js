@@ -22,13 +22,14 @@ const uptadeActivityLanguages = (activityId, languages) => {
   activity.languages = languages;
 };
 
-const uptadeActivityOrganisateur = (activityId, organisateur) => {
+const uptadeActivityOganisateur = (activityId, organisateur) => {
   const activity = obj[1].activities?.find((a) => a.id == activityId);
   activity.organisateur = organisateur;
 };
 
-const uptadeActivityData = (id, data) => {
-  console.log("***** data activity updated", data);
+const uptadeActivityByField = (activityId, field, data) => {
+  const activity = obj[1].activities?.find((a) => a.id == activityId);
+  activity[field] = data;
 };
 
 const obj = [
