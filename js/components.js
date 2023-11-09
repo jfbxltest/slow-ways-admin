@@ -56,6 +56,10 @@ class EditableElement extends HTMLElement {
       inEditToolbox.style.display = isOnEdit ? "inline" : "none";
       this.wrapperElement.style.display = isOnEdit ? "block" : "none";
     };
+    const reset = () =>
+      shadow
+        .querySelectorAll(ALTERED)
+        .forEach((e) => e.classList.remove(ALTERED));
 
     shadow.getElementById("edit-button").addEventListener("click", (evt) => {
       evt.stopPropagation();
@@ -67,7 +71,7 @@ class EditableElement extends HTMLElement {
       handleSave();
       // setStateEdit(false); // keeping in edit mode after safe action
       this.setAltered(false);
-      this.displayResetButton(false);
+      reset();
       // } catch (e) {
       //   alert(e);
       // }
@@ -89,11 +93,18 @@ class EditableElement extends HTMLElement {
     }
   }
 
-  setAltered(value) {
+  setAltered(value, target, callback) {
     if (this.aletered != value) {
       this.isAltered = value;
       this.shadowRoot.getElementById("save-button").disabled = !value;
       this.wrapperElement.toogleAltered();
+      target.classList.toggle(ALTERED); //????
+
+      const button = this.shadowRoot.getElementById("reset-button");
+      button.style.display = value ? "inline" : "none";
+      if (callback) {
+        button.onclick = callback;
+      }
     }
   }
 }
@@ -202,9 +213,7 @@ class TabsEditableElement extends EditableElement {
       evt.stopPropagation();
       const content = evt.target;
       if (content.isAltered()) return;
-      this.setAltered(true); // enabled | disabled save button
-      content.setAltered(true);
-      this.displayResetButton(true, callbackResetContent(content));
+      this.setAltered(true, content, callbackResetContent(content)); // enabled | disabled save button
       //marque * on the button tab if content is altered
       headers.forEach((header) => {
         if (header.headerKey == content.headerKey) {
@@ -258,9 +267,6 @@ class TabsEditableElement extends EditableElement {
       content.classList.add("content-item");
       content.value = contentData;
       content.headerKey = headerData;
-      content.setAltered = function (value) {
-        value ? this.classList.add(ALTERED) : this.classList.remove(ALTERED);
-      };
       content.isAltered = function () {
         return this.classList.contains(ALTERED);
       };
@@ -362,10 +368,9 @@ class OptionsEditableElement extends EditableElement {
      */
 
     const { refs, options } = data;
+    console.log("ref and options", refs, options);
     const isInOptions = (index) => {
-      // console.log("in isInOption", options, index);
-      // console.log("result", options.includes(+index));
-      return options.includes(+index);
+      return options.includes(index);
     };
     const wrapperElement = shadow.querySelector("#options");
     wrapperElement.toogleAltered = function () {
@@ -380,10 +385,11 @@ class OptionsEditableElement extends EditableElement {
 
       input.setAttribute("type", "checkbox");
       input.setAttribute("id", `toggle-${index}`);
-      input.initial = isInOptions(index);
-      input.checked = isInOptions(index);
       input.onchange = (evt) => handleChangeOption(evt);
-      console.log("input cheked", input.checked);
+      input.initial = isInOptions(index);
+      // console.log("return function test", isInOptions(index));
+      input.checked = isInOptions(index);
+      // console.log("input cheked", input.checked);
       label.setAttribute("for", `toggle-${index}`);
       label.innerText = ref;
 
@@ -491,34 +497,34 @@ customElements.define("input-editable", InputEditableElement);
 /**
  *  ////////////////////////////////////////////////////////////////////////////////////////////////////
  *
- *                                --- LINK EDITABLE ELEMENT ----
+ *                                --- FIELDS EDITABLE ELEMENT ----
  *
  *  ////////////////////////////////////////////////////////////////////////////////////////////////////
- *
+ *  display for each fields label and input (tag modified state on label with "*", on input with style "altered" )
  */
-const CSS_Link = `
-#link-wrapper {
+const CSS_Fields = `
+#fields-wrapper {
   padding: 1em;
 }
-.link-content {
+.fields-content {
   display: block;
   overflow: hidden;
   width: 100%;
 }
 `;
 
-const HTML_Link = `
-<div id="link-wrapper" class="save"></div>
+const HTML_Fields = `
+<div id="fields-wrapper" class="${SAVED}"></div>
 `;
 
-class LinkEditableElement extends EditableElement {
+class FieldsEditableElement extends EditableElement {
   constructor(params) {
-    super(HTML_Link, handleSave);
+    super(HTML_Fields, handleSave);
     const { data, handleUpdate } = { ...params };
     const shadow = this.shadowRoot;
 
     const style = document.createElement("style");
-    style.innerHTML = CSS_Link;
+    style.innerHTML = CSS_Fields;
     shadow.appendChild(style);
 
     function handleSave() {
@@ -535,10 +541,14 @@ class LinkEditableElement extends EditableElement {
      *  - callbackReset
      */
 
-    const handleChange = (evt) => {
+    const handleChangeField = (evt) => {
       evt.stopPropagation();
-      if (this.isAltered) return;
-      this.setAltered(true); // enabled | disabled save button
+      const field = evt.target;
+
+      if (!this.isAltered) {
+        this.setAltered(true); // enabled | disabled save button
+      }
+
       this.displayResetButton(true, callbackReset());
     };
 
@@ -559,19 +569,50 @@ class LinkEditableElement extends EditableElement {
      *  -----------------------------
      */
 
-    const label = document.createElement("input");
-    const target = document.createElement("input");
-    label.classList.add("link-label");
-    target.classList.add("link-target");
+    const fields = {};
 
-    label.value = data.label;
-    target.value = data.target;
+    const setAltered = function (role) {
+      return function (value, stop) {
+        if (value != this.isAltered) {
+          this.classList.toggle(ALTERED);
+          this.isAltered = value;
+          if (!stop) fields[this.fieldKey][role].setAltered(value, true);
+        }
+      };
+    };
 
-    label.oninput = (evt) => handleChange(evt);
-    target.oninput = (evt) => handleChange(evt);
-    this.wrapperElement.appendChild(label);
-    this.wrapperElement.appendChild(target);
+    for (const [key, value] of Object.entries(data)) {
+      const div = document.createElement("div");
+      const label = document.createElement("label");
+      const input = document.createElement("input");
+
+      div.classList.add("field");
+      label.classList.add("field-label");
+      input.classList.add("field-input");
+
+      label.setAttribute("for", `field-${key}`);
+      input.setAttribute("id", `field-${key}`);
+
+      fields[this.fieldKey] = { label, input };
+
+      input.isAltered = false;
+      input.setAltered = function (value) {
+        if ((value = this.isAltered)) return;
+        this.classList.toggle(ALTERED);
+      };
+
+      label.isAltered = false;
+      label.setAltered = setAltered("input");
+
+      label.textContent = key;
+      input.value = value;
+
+      input.oninput = (evt) => handleChangeField(evt);
+
+      div.append(input, label);
+      wrapperElement.appendChild(div);
+    }
   }
 }
 
-customElements.define("link-editable", LinkEditableElement);
+customElements.define("fields-editable", FieldsEditableElement);

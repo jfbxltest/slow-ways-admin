@@ -12,12 +12,7 @@ function loadActivityById(id) {
     text: (target, text, format) => {
       target.innerText = formatingText(format, text);
     },
-    options: (target, options, refs, format) => {
-      console.log(
-        "into update html options...options,  refs;: ",
-        options,
-        refs
-      );
+    list: (target, items, refs, format) => {
       //We need a child element for clone it
       const existingCount = target.childElementCount;
       if (existingCount < 1)
@@ -27,9 +22,9 @@ function loadActivityById(id) {
       // go
       const model = target.firstElementChild.cloneNode(true);
       const elements = [];
-      options.forEach((option) => {
+      items.forEach((item) => {
         const clone = model.cloneNode(true);
-        clone.innerText = formatingText(format, refs[option]);
+        clone.innerText = formatingText(format, refs[item]);
         elements.push(clone);
       });
       target.replaceChildren(...elements);
@@ -56,6 +51,7 @@ function loadActivityById(id) {
         uptadeActivityByField(activityId, "title", title);
         updateHTML.text(target, title);
       },
+      handleUpdateHTML: updateHTML.text,
     },
     descriptif: {
       query: ".activity-texte > p",
@@ -69,47 +65,50 @@ function loadActivityById(id) {
         uptadeActivityByField(activityId, "description", description);
         updateHTML.text(target, description[document.documentElement.lang]);
       },
+      handleUpdateHTML: updateHTML.text,
+      query: document.documentElement.lang,
     },
     types: {
       query: ".activity-types",
       component: OptionsEditableElement,
       options: {
         data: {
-          refs: refs.types[document.documentElement.lang],
-          options: activityData.types,
+          refs: refs.types[document.documentElement.lang], //rename 'refs to 'header'
+          options: activityData.types, //rename 'options' to 'content'
         },
       },
       handleUpdate: (activityId, target) => (types) => {
-        uptadeActivityByField(activityId, "types", types);
-        updateHTML.options(
+        uptadeActivityByField(activityId, "types", types); //ok
+        updateHTML.list(
           target,
           types,
           refs.types[document.documentElement.lang]
         );
       },
+      handleUpdateHTML: updateHTML.list,
+      query: document.documentElement.lang, //on refs !!!!
     },
     languages: {
       query: "#languages",
       component: OptionsEditableElement,
+      format: (t) => ` |${t}| `,
       options: {
         data: {
-          refs: refs.languages, //.slice(1), // remove "" (the first element)
+          refs: refs.langs, //.slice(1), // remove "" (the first element)
           options: activityData.languages,
         },
       },
       handleUpdate: (activityId, target) => (languages) => {
         uptadeActivityByField(activityId, "languages", languages);
-        updateHTML.options(
-          target,
-          languages,
-          refs.languages,
-          (t) => ` |${t}| `
-        );
+        updateHTML.list(target, languages, (t) => ` |${t}| `);
       },
+      handleUpdateHTML: updateHTML.list,
+      format: (t) => ` |${t}| `,
     },
     organisateur: {
       query: ".infos-elements > span > a",
       component: LinkEditableElement,
+      updateHTML: updateHTML.link,
       options: {
         data: {
           label: activityData.organisateur.name,
@@ -123,22 +122,41 @@ function loadActivityById(id) {
         });
         updateHTML.link(target, organisateur);
       },
+      handleUpdateHTML: updateHTML.link,
     },
   };
 
-  Object.values(elements).forEach((el) => {
-    const target = document.querySelector(el.query);
+  // Object.values(elements).forEach((el) => {
+  //   const target = document.querySelector(el.query);
+  //   target?.after(
+  //     new el.component({
+  //       handleUpdate: el.handleUpdate(id, target),
+  //       handleUpdate2: (result) => {
+  //         el.updateHTML(result)
+  //         el.format
+  //         //update data with name of field
+  //         //update UI Html
+  //       },
+  //       ...el.options,
+  //     })
+  //   );
+  // });
+
+  for (const [field, element] of Object.entries(elements)) {
+    const target = document.querySelector(element.query);
     target?.after(
-      new el.component({
-        handleUpdate: el.handleUpdate(id, target),
+      new element.component({
+        handleUpdate: element.handleUpdate(id, target),
         handleUpdate2: (result) => {
+          el.updateHTML(result);
+          el.format;
           //update data with name of field
           //update UI Html
         },
-        ...el.options,
+        ...element.options,
       })
     );
-  });
+  }
 }
 
 loadActivityById(+document.querySelector(".cardId").innerText);

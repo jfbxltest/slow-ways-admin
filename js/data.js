@@ -1,6 +1,7 @@
-const getActivityById = (id) => obj[1].activities?.find((a) => a.id == id);
+export const getActivityById = (id) =>
+  obj[1].activities?.find((a) => a.id == id);
 
-const getRefs = () => obj[0].refs;
+export const getRefs = () => obj[0].refs;
 
 const uptadeActivityTitle = (activityId, title) => {
   const activity = obj[1].activities?.find((a) => a.id == activityId);
@@ -27,7 +28,7 @@ const uptadeActivityOganisateur = (activityId, organisateur) => {
   activity.organisateur = organisateur;
 };
 
-const uptadeActivityByField = (activityId, field, data) => {
+export const uptadeActivityByField = (activityId, field, data) => {
   const activity = obj[1].activities?.find((a) => a.id == activityId);
   activity[field] = data;
 };
