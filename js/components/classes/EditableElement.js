@@ -52,7 +52,6 @@ export default class EditableElement extends HTMLElement {
     let _editableItems = [];
     let _specificItem = null;
     let _isAltered = false;
-    let _itemAlteredCount = 0;
 
     //
     // define the toolbox
@@ -76,15 +75,15 @@ export default class EditableElement extends HTMLElement {
     });
     saveButton.addEventListener("click", (evt) => {
       evt.stopPropagation();
-      try {
-        handleSave();
-        // setStateEdit(false); // keeping in edit mode after safe action
-        this.setAltered(false);
-        this.displayResetButton(false);
-        _editableItems.forEach((item) => item.save());
-      } catch (e) {
-        alert(e);
-      }
+      // try {
+      handleSave();
+      // setStateEdit(false); // keeping in edit mode after safe action
+      this.setAltered(false);
+      this.displayResetButton(false);
+      _editableItems.forEach((item) => item.save());
+      // } catch (e) {
+      //   alert(e);
+      // }
     });
     quitButton.addEventListener("click", (evt) => {
       evt.stopPropagation();

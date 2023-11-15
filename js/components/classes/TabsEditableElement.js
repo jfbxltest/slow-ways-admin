@@ -63,18 +63,18 @@ export default class TabsEditableElement extends EditableElement {
   constructor(params) {
     super(HTML_Tabs, CSS_Tabs, handleSave);
     const shadow = this.shadowRoot;
-    const { data, handleUpdate, extra } = { ...params };
-    const { defaultTab, multiligne } = { ...extra };
+    const { data, handleUpdate, defaultTab, multiligne } = { ...params };
 
     function handleSave() {
       //call updating callback function and update local data TODO????
-      contentElements.forEach(
-        (content) => (data[content.headerKey] = content.value)
-      );
+      getContents().forEach((content) => {
+        data[content.key] = content.value;
+      });
       handleUpdate(data);
     }
 
     const getHeaders = () => shadow.querySelectorAll("#tabs-header button");
+    const getContents = () => shadow.querySelectorAll(".content-item");
 
     const setActiveTab = (header) => {
       getHeaders().forEach((h) => {
@@ -120,6 +120,7 @@ export default class TabsEditableElement extends EditableElement {
       // the contents
       contentInput.classList.add("content-item");
       contentInput.value = value;
+      contentInput.key = key;
       contentInput.setAttribute("id", tabId);
 
       contentWrapper.appendChild(contentInput);

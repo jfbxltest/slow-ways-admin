@@ -32,7 +32,7 @@ const HTML_Options = `
 export default class OptionsEditableElement extends EditableElement {
   constructor(params) {
     super(HTML_Options, CSS_Options, handleSave);
-    const { data, handleUpdate } = { ...params };
+    const { data, handleUpdate, refs } = { ...params };
 
     const shadow = this.shadowRoot;
 
@@ -48,7 +48,7 @@ export default class OptionsEditableElement extends EditableElement {
         throw new Error("vous devez renseigner une option (au minimum)");
         return;
       }
-      data.options = options;
+      data.splice(0, 0, ...options);
       handleUpdate(options);
     }
 
@@ -56,9 +56,10 @@ export default class OptionsEditableElement extends EditableElement {
      *  Create and initialize elements ( headers and contents)
      *  -----------------------------------------------------
      */
-    const { refs, options } = data;
+
+    console.log("Options ...", data, refs);
     const isInOptions = (index) => {
-      return options.includes(index);
+      return data.includes(index);
     };
     const wrapperElement = shadow.querySelector("#options");
 

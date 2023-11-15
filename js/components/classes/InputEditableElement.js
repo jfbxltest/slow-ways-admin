@@ -28,8 +28,7 @@ const HTML_Input = `
 export default class InputEditableElement extends EditableElement {
   constructor(params) {
     super(HTML_Input, CSS_Input, handleSave);
-    const { data, handleUpdate, extra } = { ...params };
-    const { multiligne = false } = { ...extra };
+    const { data, handleUpdate, multiligne } = { ...params };
     const shadow = this.shadowRoot;
 
     function handleSave() {
